@@ -32,6 +32,7 @@ class ShipLoader
 end
 
 
+# Started coding at BohConf at Railsconf
 class BohShmup < Chingu::Window
   def setup
     self.input = {escape: :close}
@@ -100,10 +101,11 @@ class TrackingShip < Ship
   end
 
   def update
-    target_angle = (- Math::atan2(x - target.x, y - target.y) * (180/Math::PI)) % 360
-
+    target_angle   = (- Math::atan2(x - target.x, y - target.y) * (180/Math::PI)) % 360
     angle_to_front = (target_angle - self.angle) % 360
-    self.turn_thruster *= 1.0 # TODO slower as reaches target angle
+
+    self.turn_thruster *= 1.0
+    # TODO slower as reaches target angle
 
     if angle_to_front < 180
       self.turn_right
@@ -112,6 +114,7 @@ class TrackingShip < Ship
     end
 
     self.velocity = vector main_thruster
+    # accelerate with age
   end
 
 end
@@ -134,6 +137,13 @@ class HomingMissile < Chingu::GameObject
   # angle to
   # turn left
   # turn right
+end
+
+
+class MissileSpread
+  # get angle to target
+  # spread + and - x steps
+  # give each a sharper turning radius
 end
 
 
