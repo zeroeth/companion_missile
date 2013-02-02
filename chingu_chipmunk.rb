@@ -94,15 +94,16 @@ class TrackingShip < Ship
 
   def setup
     super
-    self.x = $window.width/2 + 50
-    self.y = $window.height/2 - 50
+
+    self.turn_thruster = rand * 5.0
+    self.main_thruster = rand * 5.0
   end
 
   def update
     target_angle = (- Math::atan2(x - target.x, y - target.y) * (180/Math::PI)) % 360
 
     angle_to_front = (target_angle - self.angle) % 360
-    self.turn_thruster = 1 # slower as reaches target angle
+    self.turn_thruster *= 1.0 # TODO slower as reaches target angle
 
     if angle_to_front < 180
       self.turn_right
@@ -140,14 +141,17 @@ end
 # TODO make larger than screeeeeeeeeeeen
 class Level < Chingu::GameState
   def setup
-    #rand(50).times{ RandomShip.create }
-
        mouse_ship =    MouseShip.create
       player_ship =   PlayerShip.create
     tracking_ship = TrackingShip.create
 
       player_ship.target = mouse_ship
     tracking_ship.target = mouse_ship
+
+    rand(50).times do
+      ship = TrackingShip.create
+      ship.target = mouse_ship
+    end
   end
 end
 
