@@ -20,6 +20,7 @@ module Chingu
   end
 end
 
+
 class ShipLoader
   def self.ship
     self.ship_tiles.first
@@ -51,6 +52,8 @@ end
 
 class Ship < Chingu::GameObject
   traits :velocity, :vector
+  traits :bounding_circle, :collision_detection
+
   attr_accessor :turn_thruster, :main_thruster
 
   # TODO do blocks!
@@ -92,11 +95,45 @@ end
 
 
 class DizzyShip < Ship
+  attr_accessor :target
+
+  def setup
+    super
+
+    self.input = {space: :missile_spread}
+  end
+
   def update
     super
     turn_left
 
     self.velocity = vector main_thruster
+  end
+
+  def missile_spread
+    5.times do |n|
+      left  = TrackingShip.create
+      right = TrackingShip.create
+
+       left.x,  left.y = self.x, self.y
+      right.x, right.y = self.x, self.y
+
+       left.target = self.target
+      right.target = self.target
+
+      spread = n * 4
+      speed = 10
+      turn = 4
+
+       left.angle = self.angle - spread
+      right.angle = self.angle + spread
+
+       left.turn_thruster = turn
+      right.turn_thruster = turn
+
+       left.main_thruster = speed
+      right.main_thruster = speed
+    end
   end
 end
 
@@ -124,6 +161,7 @@ class TrackingShip < RandomShip
   end
 
 end
+
 
 class MouseShip < Ship
   traits :velocity
@@ -160,7 +198,6 @@ class TimeDilation
 end
 
 
-
 # TODO make larger than screeeeeeeeeeeen
 class Level < Chingu::GameState
   def setup
@@ -168,10 +205,19 @@ class Level < Chingu::GameState
 
     mouse_ship = MouseShip.create
     dizzy_ship = DizzyShip.create
+    dizzy_ship.target = mouse_ship #temporary
 
-    rand(50).times do
+    (rand(3)+1).times do
       ship = TrackingShip.create
       ship.target = mouse_ship
+    end
+  end
+
+  def update
+    super
+
+    MouseShip.each_collision(TrackingShip) do |mouse_ship, tracking_ship|
+      tracking_ship.destroy
     end
   end
 end
