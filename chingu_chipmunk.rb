@@ -41,19 +41,23 @@ end
 
 
 class Ship < Chingu::GameObject
+  attr_accessor :turn_thruster, :main_thruster
+
   def setup
     self.image = ShipLoader.random_ship
     self.x = rand $window.width
     self.y = rand $window.height
     self.angle = rand 360
+    self.turn_thruster = 1
+    self.main_thruster = 1
   end
 
   def turn_left
-      self.angle = (angle - 1) % 360
+      self.angle = (angle - turn_thruster) % 360
   end
 
   def turn_right
-      self.angle = (angle + 1) % 360
+      self.angle = (angle + turn_thruster) % 360
   end
 end
 
@@ -79,7 +83,7 @@ class PlayerShip < Ship
     # NOTE this is linear.. would it be better to taper off? or just let it
     turn_left
 
-    self.velocity = vector()
+    self.velocity = vector main_thruster
   end
 end
 
@@ -90,19 +94,23 @@ class TrackingShip < Ship
 
   def setup
     super
-    self.x = $window.width/2
-    self.y = $window.height/2
+    self.x = $window.width/2 + 50
+    self.y = $window.height/2 - 50
   end
 
   def update
-     target_angle = ((- Math::atan2(target.x - x, target.y - y) * (180/Math::PI)) + 180)# % 360
-    between_angle = (   Math::atan2(x - target.x, y - target.y) * (180/Math::PI)) # % 360
+    target_angle = (- Math::atan2(x - target.x, y - target.y) * (180/Math::PI)) % 360
 
-    puts between_angle + angle
-    #self.velocity = vector()
+    angle_to_front = (target_angle - self.angle) % 360
+    self.turn_thruster = 1 # slower as reaches target angle
 
-    # angle of ship to me
-    # my rotation angle.
+    if angle_to_front < 180
+      self.turn_right
+    else
+      self.turn_left
+    end
+
+    self.velocity = vector main_thruster
   end
 
 end
