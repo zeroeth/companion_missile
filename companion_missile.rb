@@ -21,9 +21,16 @@ module Chingu
 end
 
 class ShipLoader
+  def self.ship
+    self.ship_tiles.first
+  end
+
   def self.random_ship
+    self.ship_tiles.sample
+  end
+
+  def self.ship_tiles
     @@ship_tiles ||= load_ships
-    @@ship_tiles.sample
   end
 
   def self.load_ships
@@ -35,20 +42,26 @@ end
 # Started coding at BohConf at Railsconf
 class BohShmup < Chingu::Window
   def setup
-    self.input = {escape: :close}
+    super
+    self.input = {escape: :exit}
     push_game_state Level
   end
 end
 
 
 class Ship < Chingu::GameObject
+  traits :velocity, :vector
   attr_accessor :turn_thruster, :main_thruster
 
+  # TODO do blocks!
   def setup
-    self.image = ShipLoader.random_ship
-    self.x = rand $window.width
-    self.y = rand $window.height
-    self.angle = rand 360
+    super
+    self.image = ShipLoader.ship
+
+    self.x = $window.width/2
+    self.y = $window.height/2
+    self.angle = 0
+
     self.turn_thruster = 1
     self.main_thruster = 1
   end
@@ -62,43 +75,36 @@ class Ship < Chingu::GameObject
   end
 end
 
+
 class RandomShip < Ship
-end
-
-class PlayerShip < Ship
-  traits :velocity, :vector
-  attr_accessor :target
-
-  # TODO do blocks!
   def setup
     super
-    # turny shooty input here
-    self.angle = 0
-    self.x = $window.width/2
-    self.y = $window.height/2
-    self.velocity_x = 1
-    self.velocity_y = 1
-  end
+    self.image = ShipLoader.random_ship
 
+    self.x = rand $window.width
+    self.y = rand $window.height
+    self.angle = rand 360
+
+    self.turn_thruster = rand * 5.0
+    self.main_thruster = rand * 5.0
+  end
+end
+
+
+class DizzyShip < Ship
   def update
-    # NOTE this is linear.. would it be better to taper off? or just let it
+    super
     turn_left
 
     self.velocity = vector main_thruster
   end
 end
 
-class TrackingShip < Ship
+
+class TrackingShip < RandomShip
   traits :velocity, :vector
   #traits :particle # smoke puffer
   attr_accessor :target
-
-  def setup
-    super
-
-    self.turn_thruster = rand * 5.0
-    self.main_thruster = rand * 5.0
-  end
 
   def update
     target_angle   = (- Math::atan2(x - target.x, y - target.y) * (180/Math::PI)) % 360
@@ -133,6 +139,7 @@ class MouseShip < Ship
   end
 end
 
+
 class HomingMissile < Chingu::GameObject
   # angle to
   # turn left
@@ -147,16 +154,20 @@ class MissileSpread
 end
 
 
+# Time is always a good variable to have in all accessors.
+class TimeDilation
+  # delta + rate
+end
+
+
 
 # TODO make larger than screeeeeeeeeeeen
 class Level < Chingu::GameState
   def setup
-       mouse_ship =    MouseShip.create
-      player_ship =   PlayerShip.create
-    tracking_ship = TrackingShip.create
+    super
 
-      player_ship.target = mouse_ship
-    tracking_ship.target = mouse_ship
+    mouse_ship = MouseShip.create
+    dizzy_ship = DizzyShip.create
 
     rand(50).times do
       ship = TrackingShip.create
