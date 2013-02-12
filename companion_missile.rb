@@ -121,9 +121,9 @@ class DizzyShip < Ship
        left.target = self.target
       right.target = self.target
 
-      spread = n * 4
-      speed = 10
-      turn = 4
+      spread = 75 + (n * 10)
+      speed = 5
+      turn = 1
 
        left.angle = self.angle - spread
       right.angle = self.angle + spread
@@ -147,8 +147,14 @@ class TrackingShip < RandomShip
     target_angle   = (- Math::atan2(x - target.x, y - target.y) * (180/Math::PI)) % 360
     angle_to_front = (target_angle - self.angle) % 360
 
-    self.turn_thruster *= 1.0
-    # TODO slower as reaches target angle
+    # TODO need to make a visualizer/tracer/editor for this by drawing all
+    # frames, start with a simple plot of += x, *= x.. and such
+    # and turn into a curve with a cap.. like tree growth
+    # * refactor into a brain/engine module for various bullet styles
+    # * read bullet ml?
+    self.turn_thruster *= 1.01 * TimeDilation.delta
+    self.main_thruster *= 1.00
+    # TODO slower as reaches target angle?
 
     if angle_to_front < 180
       self.turn_right
@@ -179,9 +185,8 @@ end
 
 
 class HomingMissile < Chingu::GameObject
-  # angle to
-  # turn left
-  # turn right
+  # die after time or out of screen
+  # puff smoke/trail
 end
 
 
@@ -191,10 +196,67 @@ class MissileSpread
   # give each a sharper turning radius
 end
 
+class MissileLauncher
+  # to fire multiple over time.. keep internal track of angle of fire
+  # attached to parent.. so parent just fires the 'weapon' and it holds its
+  # state and bullets
+end
+
+class SpatterFire
+  # continuous stream with its own fire rate
+  # while ship just turns it on or off
+  # kind of like that guys fib sequence bullet launcher from rubyjax
+end
+
+
+class EnergyProjectile
+  # standard projectile.. with a weapon that has upgrades for
+  # directionality/number of emitters
+end
+
+class ChargeBeam
+  # holding increases.. width? negates.. growth speed or max distance maybe
+  # where a quick shot is thin and instantly long
+end
+
+class LaserProjectile
+  # or some other straight thing.. possibly with ricochet
+end
+
+
+class PowerUp
+  # a game object that rotates its internal state? or picks a random.. and
+  # changes direction every few seconds, and gives/switches (depending on ship)
+  # weapons
+end
+
+
+class Turret
+  # something for ships/tanks so they can move one direction and shoot another
+end
+
+
+class Explosion
+  # standard circular fire explosion element. can spur a configurable size
+  # radius/intensity of stuff
+end
+
+
+# TRAITS
+# - composition for drawing engine states?
+#   (or just drawing subchildren maybe.)
+# - truepixels. only move drawing at even pixel intervals or rotate on typical
+#   degree jumps of pixel perfect games
+# - explodable: spawns children on death which are explosion animation items
+
 
 # Time is always a good variable to have in all accessors.
+# Maybe have a cool ultra zoom for super hyper avoidance
 class TimeDilation
-  # delta + rate
+  # frame rate delta + rate multiplier for slowdown.
+  def self.delta
+    1.0 # $window.milliseconds_since_last_tick
+  end
 end
 
 
